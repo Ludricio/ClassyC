@@ -1,6 +1,6 @@
 #ifndef CLASS_H_
 #define CLASS_H_
-
+#include <stdlib.h>
 /* Macros whose names end with double underscore are internal macros and not
  * ment for use outside the implementation.
  *
@@ -65,12 +65,12 @@
 /*Class*/
 #define defclass(class)                                                         \
     class_if_class_has_private__(class_private__;)                              \
-    struct class{
+    typedef struct class{
         
 #define endclass                                                                \
         void (*destroy)(void *ptr);                                             \
         class_if_class_has_private__(class_private__ *private;)			\
-    };
+    }DEFINING_CLASS;
 
 #define classmethod(ret, name, ...)                                             \
     ret (*name)(const class_this__, ##__VA_ARGS__)
