@@ -31,6 +31,30 @@
 #define class_if___CLASS_NO_PRIVATE(t,f) f
 #define class_if_class_has_private__(body) class_if__(CLASS_NO_PRIVATE, , body)
 
+#define class_arg16__(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
+#define class_has_comma__(...) class_arg16__(__VA_ARGS__, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+#define class_trigger_parenthesis__(...) ,
+ 
+#define class_arg_isempty__(...)  \
+class_arg_isempty___(                                                   \
+          /* test if there is just one argument, eventually an empty    \
+             one */                                                     \
+          class_has_comma__(__VA_ARGS__),                                       \
+          /* test if _TRIGGER_PARENTHESIS_ together with the argument   \
+             adds a comma */                                            \
+          class_has_comma__(class_trigger_parenthesis__ __VA_ARGS__),                 \
+          /* test if the argument together with a parenthesis           \
+             adds a comma */                                            \
+          class_has_comma__(__VA_ARGS__ (/*empty*/)),                           \
+          /* test if placing it between _TRIGGER_PARENTHESIS_ and the   \
+             parenthesis adds a comma */                                \
+          class_has_comma__(class_trigger_parenthesis__ __VA_ARGS__ (/*empty*/))      \
+          )
+ 
+#define class_paste5__(_0, _1, _2, _3, _4) _0 ## _1 ## _2 ## _3 ## _4
+#define class_arg_isempty___(_0, _1, _2, _3) class_has_comma__(class_paste5__(class_is_empty_case_, _0, _1, _2, _3))
+#define class_is_empty_case_0001_ ,
+
 #define class_this__ struct DEFINING_CLASS *this
 #define class_private__ struct class_conc2__(DEFINING_CLASS, _private)
 #define class_func__(name) class_conc2__(DEFINING_CLASS, _##name)
@@ -72,11 +96,20 @@
         class_if_class_has_private__(class_private__ *private;)			\
     }DEFINING_CLASS;
 
+
 #define classmethod(ret, name, ...)                                             \
     ret (*name)(const class_this__, ##__VA_ARGS__)
 
 #define classfunction(ret, name, ...)                                           \
     ret (*name)(__VA_ARGS__)
+
+#define classgetter(ret, name)							\
+	classmethod(ret, class_conc2__(get,name))
+#define classsetter(name, type)							\
+	classmethod(void, class_conc2__(set,name), type name)
+#define classproperty(name, type)						\
+	classgetter(type, name);						\
+	classsetter(name, type)
 
 #define defclass_private                                                        \
     class_private__{
@@ -142,6 +175,36 @@
     class_end__
 
 /*End Methods*/
+
+/*Properties*/
+#define decgetter(ret, name)							\
+	decmethod(ret, class_conc2__(get,name))
+#define decsetter(name, type)							\
+	decmethod(void, class_conc2__(set,name), type name)
+#define decproperty(name, type)							\
+	decgetter(type, name);							\
+	decsetter(name, type)
+
+#define defgetter(ret, name, customBody)					\
+	defmethod(type, class_conc2__(get,name))				\
+	class_if__(class_arg_ifempty__(customBody),				\
+		return private->name;,						\
+		customBody)
+#define defsetter(name, type, customBody)					\
+	defmethod(type, class_conc2__(set,name), type name) 			\
+	class_if__(class_arg_ifempty__(customBody),				\
+		private->name = name;,						\
+		customBody)
+		
+#define defproperty(type, name, getCustomBody, setCustomBody)			\
+	defgetter(type, name, getCustomBody)					\
+	endgetter								\
+	defsetter(void, name, setCustomBody)
+
+#define endsetter }
+#define endgetter }
+#define endproperty }
+/*End Properties*/
 
 /*Functions*/
 #define decfunction(ret, name, ...)                                             \
