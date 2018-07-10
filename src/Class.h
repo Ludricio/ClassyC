@@ -6,6 +6,12 @@
  *
  * Use only macros under the "Public Macros" section, that doesn't end with a
  * trailing double underscore.
+ *
+ * All macros used should be encased within:
+ 
+ * #define DEFINING_CLASS [classname]
+ * //macro usage here
+ * #undef DEFINING_CLASS
  */
 
 /*Internal Macros*/
@@ -59,11 +65,11 @@
 /*Class*/
 #define defclass(class)                                                         \
     class_if_class_has_private__(class_private__;)                              \
-    struct class{                                                               \
-        class_if_class_has_private__(class_private__ *private;)
+    struct class{
         
 #define endclass                                                                \
         void (*destroy)(void *ptr);                                             \
+        class_if_class_has_private__(class_private__ *private;)			\
     };
 
 #define classmethod(ret, name, ...)                                             \
